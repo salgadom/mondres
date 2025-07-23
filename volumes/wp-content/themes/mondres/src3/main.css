@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@utility animation-delay-* {
+  animation-delay: --value(integer)ms;
+}
+
+@theme {
+    --animate-typing: typing 2s steps(20) infinite alternate, blink .7s infinite;
+    --animate-slidein: slidein 1s ease forwards;
+
+    @keyframes typing {
+        0% {
+            width: 0%;
+            visibility: hidden;
+        }
+        100% {
+            width: 100%;
+        }
+    }
+
+    @keyframes blink {
+        50% {
+            border-color: transparent;
+        }
+        100% {
+            border-color: white;
+        }
+    }
+
+    @keyframes slidein {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}

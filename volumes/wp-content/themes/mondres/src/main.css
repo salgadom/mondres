@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@utility animation-delay-* {
+    animation-delay: --value(integer) ms;
+}
+
+@theme {
+    --animate-typing: typing 2s steps(20) infinite alternate,
+        blink 0.7s infinite;
+    --animate-slidein: slidein 1s ease forwards;
+
+    @keyframes typing {
+        0% {
+            width: 0%;
+            visibility: hidden;
+        }
+        100% {
+            width: 100%;
+        }
+    }
+
+    @keyframes blink {
+        50% {
+            border-color: transparent;
+        }
+        100% {
+            border-color: white;
+        }
+    }
+
+    @keyframes slidein {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes rollin {
+        0% {
+            font-size: 0px;
+            opacity: 0;
+            margin-left: -1rem;
+            margin-top: 0;
+            transform: rotate(-25deg);
+        }
+        8% {
+            opacity: 1;
+            transform: rotate(0deg);
+        }
+        25% {
+            font-size: inherit;
+            opacity: 1;
+            margin-left: 0;
+            margin-top: 0;
+        }
+        100% {
+            font-size: inherit;
+            opacity: 1;
+            margin-left: 0;
+            margin-top: 0;
+            transform: rotate(0deg);
+        }
+    }
+}

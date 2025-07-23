@@ -1,0 +1,7 @@
+node_modules
+volumes/wp-content/themes/mondres/src
+volumes/wp-content/themes/mondres/package-lock.json
+volumes/wp-content/themes/mondres/package.json
+*.sh
+*.config.js
+.DS_Store

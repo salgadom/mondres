@@ -1,0 +1,40 @@
+backups/
+
+# Node modules and build outputs
+node_modules/
+wp-content/**/node_modules/
+wp-content/**/dist/
+
+# Composer vendor directory (if using Composer)
+vendor/
+
+# Docker database volumes and backups
+data/db/
+db_data/
+*.sql
+*.tar.gz
+
+# WordPress uploads (media files)
+wp-content/uploads/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Env/config/secrets
+.env
+.env.local
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+
+# Log files
+*.log
+
+# OS generated files
+ehthumbs.db
+Icon?
+
+package-lock.json

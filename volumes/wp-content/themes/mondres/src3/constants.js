@@ -1,0 +1,1 @@
+export const MAJESTIC_WINGED_LION_GLB = "/wp-content/themes/mondres/assets/models/majestic_winged_lion-desktop.glb"
