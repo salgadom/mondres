@@ -5,3 +5,4 @@ volumes/wp-content/themes/mondres/package.json
 *.sh
 *.config.js
 .DS_Store
+.deployignore

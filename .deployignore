@@ -1,0 +1,42 @@
+# Node and build tools
+node_modules
+src
+src3
+build/
+.next/
+out/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Logs and temp
+*.log
+*.tmp
+*.swp
+
+# Source maps
+*.map
+
+# Local config / env
+.env
+*.local.*
+.vscode/
+
+# Deployment script
+deploy.js
+.deployignore
+
+# Custom
+*.config.js
+package.json
+package-*.json
+*.sh
+
+**/models/*-blue.glb
+**/models/*-gold.glb
+**/models/*-no-texture.glb

@@ -1,0 +1,17 @@
+{
+  "name": "mondres-portfolio",
+  "version": "1.0.0",
+  "description": "Mondres website",
+  "main": "index.js",
+  "scripts": {
+    "deploy": "deploy",
+    "deploy-dist": "deploy --subdir=dist",
+    "deploy:dry": "deploy --dry-run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "sftp-deploy-tool": "file:../packages/sftp-deploy-tool"
+  }
+}
