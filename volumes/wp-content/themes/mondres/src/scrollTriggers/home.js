@@ -4,7 +4,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger"
 gsap.registerPlugin(ScrollTrigger)
 
 export function home_setup() {
-    ScrollTrigger.normalizeScroll(true)
+    // ScrollTrigger.normalizeScroll(true)
 
     initScrollAnimation()
 
@@ -19,12 +19,13 @@ export function home_setup() {
     });
 }
 
+let tagline
 const tagline_setup = () => {
     const isMobile = getMobile()
     const navigation = document.getElementById("navigation")
     const site_tagline = navigation.querySelector(".wp-block-site-tagline")
 
-    const tagline = site_tagline.textContent
+    tagline = tagline || site_tagline.textContent
     const words = tagline
         .split(".")
         .filter((t) => t)
@@ -62,6 +63,7 @@ const tagline_setup = () => {
     })
 
     navigation.appendChild(container)
+    site_tagline?.remove()
 }
 
 const updateBodyPaddingTop = () => {
@@ -70,10 +72,13 @@ const updateBodyPaddingTop = () => {
 
     gsap.set(document.body, {
         paddingTop:
-            navigation.getBoundingClientRect().height +
-            window.scrollY -
-            topNav.getBoundingClientRect().height +
-            getWpadminbarHeight(),
+            + navigation.getBoundingClientRect().height 
+            + window.scrollY 
+        // document.getElementById("mainPage").getBoundingClientRect().top
+            // - topNav.getBoundingClientRect().height 
+            // + navigation.getBoundingClientRect().height 
+            // + window.scrollY 
+            // - getWpadminbarHeight(),
     })
 }
 
@@ -179,7 +184,7 @@ let tl
 function initScrollAnimation() {
     const navigation = document.getElementById("navigation")
     const site_logo = navigation.querySelector("#navSiteLogoWrap .wp-block-site-logo")
-    
+
     // Kill existing ScrollTriggers if they exist
     if (tl) {
         tl.kill()
@@ -303,7 +308,7 @@ function initScrollAnimation() {
             },
             {
                 autoAlpha: 1,
-                top: 20 + getWpadminbarHeight(),
+                top: getWpadminbarHeight(),
                 x: 0,
                 duration: 20,
             },

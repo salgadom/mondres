@@ -34,6 +34,10 @@ function register_custom_group_styles() {
     'name'  => 'custom',
     'label' => __('Custom', 'mondres'),
   ]);
+  register_block_style('core/details', [
+    'name'  => 'navigation',
+    'label' => __('Navigation', 'mondres'),
+  ]);
 }
 add_action('init', 'register_custom_group_styles');
 
@@ -171,37 +175,51 @@ add_filter('render_block_core/navigation', function ($block_content, $block) {
     // Clone the <ul> if it exists
     $ul = $xpath->query('//ul')->item(0);
     if ($ul) {
-        $ul->setAttribute('class', 'menu-list flex flex-col gap-6'); // Your custom <ul> classes
+        $ul->setAttribute('class', 'menu-list flex flex-col gap-3'); // Your custom <ul> classes
 
         // Loop through all <li> children and update classes
         foreach ($ul->getElementsByTagName('li') as $li) {
             $li->setAttribute('class', 'menu-item');
             // ✅ Modify all <a> tags
             foreach ($li->childNodes as $child) {
-                $child->setAttribute('class', 'px-3 text-lg !no-underline transition-all');
+                $child->setAttribute('class', 'p-3 text-lg !no-underline');
             }
         }
     }
 
     // Create custom nav wrapper
-    $wrapper = $dom->createElement('nav');
-    $wrapper->setAttribute('class', 'responsive-nav');
+    $topNav = $dom->createElement('div');
+    $topNav->setAttribute('id', 'topNav');
+    $topNav->setAttribute('class', 'flex items-center justify-end');
 
-    // Burger/trigger button
-    $triggerHTML = '
-      <div onclick="menu(this)" class="backdrop-blur-sm bg-black/25 fixed flex items-center justify-center right-6 ring-1 ring-white/20 rounded-full size-12 top-0 trigger z-50">
-        <svg fill="none" stroke="currentColor" stroke-width="1.5" class="size-8" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" class="bars hidden"></path>
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" class="x-mark"></path>
-        </svg>
-      </div>
-    ';
+    $wrapper = $dom->createElement('nav');
+    $wrapper->setAttribute('data-custom-nav', null);
+    $wrapper->setAttribute('class', 'relative');
+
+    $triggerHTML = (function () {
+        ob_start();
+        ?>
+        <!-- Toggle class `open` to animate -->
+        <button class="trigger relative z-50 w-8 h-8 flex flex-col justify-center items-center space-y-1 group">
+            <!-- Top bar -->
+            <span class="block h-0.5 w-6 bg-black transition-transform duration-300 origin-center group-[.open]:rotate-45 group-[.open]:translate-y-1.5"></span>
+
+            <!-- Middle bar -->
+            <span class="block h-0.5 w-6 bg-black transition-opacity duration-300 group-[.open]:opacity-0"></span>
+
+            <!-- Bottom bar -->
+            <span class="block h-0.5 w-6 bg-black transition-transform duration-300 origin-center group-[.open]:-rotate-45 group-[.open]:-translate-y-1.5"></span>
+        </button>
+    <?php
+        return ob_get_clean();
+    })();
+
     $trigger = $dom->createDocumentFragment();
     $trigger->appendXML($triggerHTML);
 
     // Create custom menu div and move updated <ul> into it
     $menuDiv = $dom->createElement('div');
-    $menuDiv->setAttribute('class', 'bg-gradient-to-r from-blue-200 to-violet-200 font-bold gap-8 menu pb-5 pt-10 px-5 flex-col max-w-xs w-full right-4 h-auto rounded-lg fixed z-40 -translate-y-full flex opacity-0 transition-all duration-300' . ' translate-y-0 opacity-100');
+    $menuDiv->setAttribute('class', 'menu bg-gradient-to-r from-blue-200 to-violet-200 font-bold gap-8 pb-5 pt-10 px-5 flex-col max-w-xs w-full right-4 h-auto rounded-lg fixed z-40 -translate-y-full flex opacity-0 transition-all duration-300');
 
     if ($ul) {
         $menuDiv->appendChild($ul->cloneNode(true));
@@ -209,9 +227,116 @@ add_filter('render_block_core/navigation', function ($block_content, $block) {
 
     $wrapper->appendChild($trigger);
     $wrapper->appendChild($menuDiv);
-    $body->replaceChild($wrapper, $nav);
+    $topNav->appendChild($wrapper);
+
+    $body->replaceChild($topNav, $nav);
 
     // Clean output
+    $html = $dom->saveHTML();
+    $html = preg_replace('/^<!DOCTYPE.+?>/', '', $html);
+    $html = str_replace(['<html>', '</html>', '<body>', '</body>'], '', $html);
+
+    return trim($html);
+}, 10, 2);
+
+add_action('wp_footer', function () {
+?>
+    <div class="menu-overlay backdrop-blur-xl hidden fixed bg-amber-500/20 inset-0 z-30"></div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const nav = document.querySelector('[data-custom-nav]');
+            const trigger = nav?.querySelector('.trigger');
+            const menu = nav?.querySelector('.menu');
+
+            if (!nav || !trigger || !menu) return;
+
+            // Toggle class on <body> when trigger is clicked
+            trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.body.classList.toggle('menu-open');
+                trigger.classList.toggle('open');
+            });
+
+            // Prevent clicks inside menu from toggling class
+            menu.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+
+            // Remove class when a link is clicked
+            menu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    document.body.classList.remove('menu-open');
+                    trigger.classList.remove('open');
+                });
+            });
+        })
+    </script>
+<?php
+}, PHP_INT_MAX );
+
+add_filter('render_block', function ($block_content, $block) {
+    if (
+        $block['blockName'] !== 'core/details' ||
+        empty($block['attrs']['className']) ||
+        strpos($block['attrs']['className'], 'is-style-navigation') === false
+    ) {
+        return $block_content;
+    }
+
+    $dom = new DOMDocument();
+    libxml_use_internal_errors(true);
+    $dom->loadHTML('<?xml encoding="utf-8" ?>' . $block_content);
+    libxml_clear_errors();
+
+    $xpath = new DOMXPath($dom);
+
+    $details = $xpath->query('//details')->item(0);
+    $summary = $xpath->query('//summary')->item(0);
+    
+    if ($details) {
+        // --- Replace <details> with <nav>
+        $nav = $dom->createElement('nav');
+        $nav->setAttribute('class', '');
+        
+        while ($details->firstChild) {
+            $nav->appendChild($details->firstChild);
+        }
+        
+        $details->parentNode->replaceChild($nav, $details);
+
+        // --- Wrap inner div
+        $nonSummaryChildren = $xpath->query('./*[not(self::summary)]', $nav);
+
+        if ($nonSummaryChildren->length > 0) {
+            // Create the wrapper div
+            $wrapper = $dom->createElement('div');
+            $wrapper->setAttribute('class', 'overflow-y-auto backdrop-blur-xl fixed bg-amber-500/20 inset-0 z-30');
+
+            // Insert the wrapper before the first non-summary element
+            $first = $nonSummaryChildren->item(0);
+            $details->insertBefore($wrapper, $first);
+
+            // Move each non-summary child into the wrapper
+            foreach ($nonSummaryChildren as $child) {
+                $wrapper->appendChild($child);
+            }
+        }
+    }
+
+    if ($summary) {
+        $trigger_html = '
+            <button class="trigger relative z-50 w-8 h-8 flex flex-col justify-center items-center space-y-1 group">
+                <span class="block h-0.5 w-6 bg-black transition-transform duration-300 origin-center group-[.open]:rotate-45 group-[.open]:translate-y-1.5"></span>
+                <span class="block h-0.5 w-6 bg-black transition-opacity duration-300 group-[.open]:opacity-0"></span>
+                <span class="block h-0.5 w-6 bg-black transition-transform duration-300 origin-center group-[.open]:-rotate-45 group-[.open]:-translate-y-1.5"></span>
+            </button>
+        ';
+        $fragment = $dom->createDocumentFragment();
+        $fragment->appendXML($trigger_html);
+        $summary->parentNode->replaceChild($fragment, $summary);
+    }
+
+    // Return cleaned HTML
     $html = $dom->saveHTML();
     $html = preg_replace('/^<!DOCTYPE.+?>/', '', $html);
     $html = str_replace(['<html>', '</html>', '<body>', '</body>'], '', $html);
