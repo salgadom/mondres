@@ -8,7 +8,7 @@ export default defineConfig({
         emptyOutDir: true,
         manifest: true,
         rollupOptions: {
-            input: path.resolve(__dirname, "src/main.js"),
+            input: path.resolve(__dirname, "src/main.js")
         },
     },
     plugins: [tailwindcss()],

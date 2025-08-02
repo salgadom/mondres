@@ -1,3 +1,53 @@
 /*
 Theme Name:   Mondres
 */
+body {
+    padding-top: 1040px;
+}
+#navigation {
+    position: fixed;
+    z-index: 10;
+    background-color: rgb(255, 255, 255);
+    width: 100svw;
+    height: 100svh;
+    left: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.tagline-word-container {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+.wp-block-site-tagline {
+    display: none;
+}
+#navSiteLogoWrap {
+    width: 100%;
+}
+#navSiteLogoWrap .wp-block-site-logo {
+    translate: none;
+    rotate: none;
+    scale: none;
+    transform-origin: 50% 50%;
+    position: relative;
+    z-index: 0;
+}
+#navSiteLogoWrap img {
+    width: 380px;
+}
+#topNav {
+    opacity: 0;
+    position: fixed;
+    left: 0;
+    width: calc(100svw - var(--wp--style--root--padding-right));
+    z-index: 40;
+}
+/* .wp-block-navigation__responsive-container {
+    display: flex !important;
+} */

@@ -33,7 +33,6 @@ services:
 
   phpmyadmin:
     image: phpmyadmin:latest
-    restart: always
     ports:
       - "8081:80"
     environment:
