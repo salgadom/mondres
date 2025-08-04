@@ -4,7 +4,11 @@ export default {
     './src/*.css', // Your Tailwind input files
   ],
   theme: {
-    extend: {}
+    extend: {
+      colors: {
+        gold: '#916922',
+      }
+    }
   },
   plugins: [],
 };

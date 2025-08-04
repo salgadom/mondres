@@ -3,21 +3,41 @@ function mondres_enqueue_assets() {
     // Switch between dev/prod
     $is_dev = wp_get_environment_type() === 'development';
 
+    // $localhost = "http://192.168.0.124"; // ifconfig | grep "inet " | grep -v 127.0.0.1 
+    $localhost = "http://localhost";
+    $remote = "$localhost:8080/wp-content/themes/mondres";
+
     if ($is_dev) {
         // Load from Vite dev server
-        wp_enqueue_script_module('mondres-dev-script', 'http://localhost:5173/@vite/client', [], null, true);
-        wp_enqueue_script_module('mondres-dev-style', 'http://localhost:5173/src/main.js', [], null, true);
+        wp_enqueue_script_module('mondres-dev-vite-script', 'http://localhost:5173/@vite/client', [], null, true);
+        wp_enqueue_script_module('mondres-dev-vite-style', 'http://localhost:5173/src/main.js', [], null, true);
     } else {
         // Load from built /dist
         $manifest = json_decode(file_get_contents(get_template_directory() . '/dist/.vite/manifest.json'), true);
         $main = $manifest['src/main.js'];
 
-        wp_enqueue_script('mondres-prod-script', get_template_directory_uri() . '/dist/' . $main['file'], [], null, true);
-        wp_enqueue_style('mondres-prod-style', get_template_directory_uri() . '/dist/' . $main['css'][0], [], null);
+        // get_template_directory_uri()
+
+        wp_enqueue_script('mondres-prod-vite-script', $remote . '/dist/' . $main['file'], [], null, true);
+        wp_enqueue_style('mondres-prod-vite-style', $remote . '/dist/' . $main['css'][0], [], null);
     }
     
-    wp_enqueue_style('mondres-prod-style', get_template_directory_uri() . '/style.css', [], null);
-    wp_enqueue_script('mondres-prod-script', get_template_directory_uri() . '/dist_iife/glow.js', [], '1.3', true);
+    wp_enqueue_style('mondres-prod-style', $remote . '/style.css', [], null);
+
+    $scripts = [
+        [ 'handle' => 'mondres-glow', 'file' => 'glow.js', 'version' => '1.3' ],
+        [ 'handle' => 'mondres-menu', 'file' => 'menu.js', 'version' => '1.0' ],
+    ];
+
+    foreach ( $scripts as $script ) {
+        wp_enqueue_script(
+            $script['handle'],
+            $remote . ($is_dev ? '/src/iife/': '/dist_iife/') . $script['file'],
+            [],
+            $script['version'],
+            true
+        );
+    }
 }
 add_action('wp_enqueue_scripts', 'mondres_enqueue_assets');
 
@@ -294,23 +314,20 @@ add_filter('render_block', function ($block_content, $block) {
     $summary = $xpath->query('//summary')->item(0);
     
     if ($details) {
-        // --- Replace <details> with <nav>
-        $nav = $dom->createElement('nav');
-        $nav->setAttribute('class', '');
-        
-        while ($details->firstChild) {
-            $nav->appendChild($details->firstChild);
-        }
-        
-        $details->parentNode->replaceChild($nav, $details);
-
-        // --- Wrap inner div
-        $nonSummaryChildren = $xpath->query('./*[not(self::summary)]', $nav);
+         // --- Wrap inner div
+        $nonSummaryChildren = $xpath->query('./*[not(self::summary)]', $details);
 
         if ($nonSummaryChildren->length > 0) {
             // Create the wrapper div
             $wrapper = $dom->createElement('div');
-            $wrapper->setAttribute('class', 'overflow-y-auto backdrop-blur-xl fixed bg-amber-500/20 inset-0 z-30');
+            $wrapper->setAttribute('class', 'backdrop-blur-xl fixed bg-amber-500/40 inset-0 z-20');
+
+            $scollArea = $dom->createElement('div');
+            $scollArea->setAttribute('class', 'absolute inset-0 overflow-y-auto py-[150px]'. ' mask-[linear-gradient(to_bottom,transparent_0%,black_20%)] mask-no-repeat mask-size-[100%_100%]');
+            $wrapper->appendChild($scollArea);
+            
+            $innerWrap = $dom->createElement('div');
+            $innerWrap->setAttribute('class', 'mx-auto max-w-[var(--wp--style--global--content-size)]');
 
             // Insert the wrapper before the first non-summary element
             $first = $nonSummaryChildren->item(0);
@@ -318,19 +335,36 @@ add_filter('render_block', function ($block_content, $block) {
 
             // Move each non-summary child into the wrapper
             foreach ($nonSummaryChildren as $child) {
-                $wrapper->appendChild($child);
+                $innerWrap->appendChild($child);
             }
+
+            $scollArea->appendChild($innerWrap);
         }
+        // --- Replace <details> with <nav>
+        $nav = $dom->createElement('nav');
+        $nav->setAttribute('data-custom-nav', null);
+        $nav->setAttribute('id', 'topNav');
+        $nav->setAttribute('class', 'group max-w-[var(--wp--style--global--wide-size)] w-[calc(100svw-var(--wp--style--root--padding-right))] justify-end items-center flex');
+        
+        while ($details->firstChild) {
+            $nav->appendChild($details->firstChild);
+        }
+        
+        $details->parentNode->replaceChild($nav, $details);
     }
 
     if ($summary) {
-        $trigger_html = '
-            <button class="trigger relative z-50 w-8 h-8 flex flex-col justify-center items-center space-y-1 group">
+        $trigger_html = (function () {
+        ob_start();
+        ?>
+            <button class="relative w-8 h-8 flex flex-col justify-center items-center space-y-1">
                 <span class="block h-0.5 w-6 bg-black transition-transform duration-300 origin-center group-[.open]:rotate-45 group-[.open]:translate-y-1.5"></span>
                 <span class="block h-0.5 w-6 bg-black transition-opacity duration-300 group-[.open]:opacity-0"></span>
                 <span class="block h-0.5 w-6 bg-black transition-transform duration-300 origin-center group-[.open]:-rotate-45 group-[.open]:-translate-y-1.5"></span>
             </button>
-        ';
+        <?php
+            return ob_get_clean();
+        })();
         $fragment = $dom->createDocumentFragment();
         $fragment->appendXML($trigger_html);
         $summary->parentNode->replaceChild($fragment, $summary);

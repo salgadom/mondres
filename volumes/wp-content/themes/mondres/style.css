@@ -2,14 +2,15 @@
 Theme Name:   Mondres
 */
 body {
-    padding-top: 1040px;
+    padding-top: 4500px;
+    /* background-color: white; */
 }
 #navigation {
     position: fixed;
     z-index: 10;
     background-color: rgb(255, 255, 255);
-    width: 100svw;
-    height: 100svh;
+    width: 100dvw;
+    height: 100dvh;
     left: 0;
     top: 0;
     display: flex;
@@ -46,19 +47,6 @@ body {
     position: fixed;
     left: 50%;
     transform: translateX(-50%);
-    max-width: var(--wp--style--global--wide-size);
-    width: calc(100svw - var(--wp--style--root--padding-right));
-    z-index: 40;
+    z-index: 30;
     height: 100px;
-}
-
-/*
-* MENU
-*/
-.menu-open .menu {
-    translate: 0 0 !important;
-    opacity: 1 !important;
-}
-.menu-open .menu-overlay {
-    display: block !important;
 }
